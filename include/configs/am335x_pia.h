@@ -176,7 +176,7 @@
 	"bootenvusr=uEnvrc.txt\0" \
 	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
 	"loadbootenvusr=fatload mmc ${mmcdev} ${loadaddr} ${bootenvusr}\0" \
-	"importbootenv=echo Importing environment from mmc ...; " \
+	"importbootenv=; " \
 		"env import -t $loadaddr $filesize\0" \
 	"ramargs=setenv bootargs console=${console} " \
 		"${optargs} " \
@@ -203,9 +203,13 @@
 	"mmcboot=mmc dev ${mmcdev}; " \
 		"if mmc rescan; then " \
                         "if test ${gpio_enter} = yes; then " \
-                            "run loadbootenvusr;" \
+                            "if run loadbootenvusr; then " \
+                                "run importbootenv;" \
+                            "fi;" \
                         "else " \
-			"run loadbootenv;" \
+			"if run loadbootenv; then " \
+				"run importbootenv;" \
+			"fi;" \
                         "fi;" \
 			"if test -n $uenvcmd; then " \
 				"run uenvcmd;" \
