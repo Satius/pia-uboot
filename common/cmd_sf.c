@@ -123,7 +123,7 @@ static int do_spi_flash_probe(int argc, char * const argv[])
 
 	new = spi_flash_probe(bus, cs, speed, mode);
 	if (!new) {
-		printf("Failed to initialize SPI flash at %u:%u\n", bus, cs);
+		debug("Failed to initialize SPI flash at %u:%u\n", bus, cs);
 		return 1;
 	}
 
@@ -212,7 +212,7 @@ static int spi_flash_update(struct spi_flash *flash, u32 offset,
 		for (; buf < end && !err_oper; buf += todo, offset += todo) {
 			todo = min(end - buf, flash->sector_size);
 			if (get_timer(last_update) > 100) {
-				printf("   \rUpdating, %zu%% %lu B/s",
+				debug("   \rUpdating, %zu%% %lu B/s",
 				       100 - (end - buf) / scale,
 					bytes_per_second(buf - start_buf,
 							 start_time));
@@ -227,14 +227,14 @@ static int spi_flash_update(struct spi_flash *flash, u32 offset,
 	free(cmp_buf);
 	putc('\r');
 	if (err_oper) {
-		printf("SPI flash failed in %s step\n", err_oper);
+		debug("SPI flash failed in %s step\n", err_oper);
 		return 1;
 	}
 
 	delta = get_timer(start_time);
-	printf("%zu bytes written, %zu bytes skipped", len - skipped,
+	debug("%zu bytes written, %zu bytes skipped", len - skipped,
 	       skipped);
-	printf(" in %ld.%lds, speed %ld B/s\n",
+	debug(" in %ld.%lds, speed %ld B/s\n",
 	       delta / 1000, delta % 1000, bytes_per_second(len, start_time));
 
 	return 0;
@@ -264,7 +264,7 @@ static int do_spi_flash_read_write(int argc, char * const argv[])
 
 	/* Consistency checking */
 	if (offset + len > flash->size) {
-		printf("ERROR: attempting %s past flash size (%#x)\n",
+		debug("ERROR: attempting %s past flash size (%#x)\n",
 		       argv[0], flash->size);
 		return 1;
 	}
@@ -287,7 +287,7 @@ static int do_spi_flash_read_write(int argc, char * const argv[])
 		else
 			ret = spi_flash_write(flash, offset, len, buf);
 
-		printf("SF: %zu bytes @ %#x %s: %s\n", (size_t)len, (u32)offset,
+		debug("SF: %zu bytes @ %#x %s: %s\n", (size_t)len, (u32)offset,
 		       read ? "Read" : "Written", ret ? "ERROR" : "OK");
 	}
 
@@ -316,13 +316,13 @@ static int do_spi_flash_erase(int argc, char * const argv[])
 
 	/* Consistency checking */
 	if (offset + len > flash->size) {
-		printf("ERROR: attempting %s past flash size (%#x)\n",
+		debug("ERROR: attempting %s past flash size (%#x)\n",
 		       argv[0], flash->size);
 		return 1;
 	}
 
 	ret = spi_flash_erase(flash, offset, len);
-	printf("SF: %zu bytes @ %#x Erased: %s\n", (size_t)len, (u32)offset,
+	debug("SF: %zu bytes @ %#x Erased: %s\n", (size_t)len, (u32)offset,
 	       ret ? "ERROR" : "OK");
 
 	return ret == 0 ? 0 : 1;
@@ -362,7 +362,7 @@ static void show_time(struct test_info *test, int stage)
 		do_div(speed, test->time_ms[stage] * 1024);
 	bps = speed * 8;
 
-	printf("%d %s: %d ticks, %d KiB/s %d.%03d Mbps\n", stage,
+	debug("%d %s: %d ticks, %d KiB/s %d.%03d Mbps\n", stage,
 	       stage_name[stage], test->time_ms[stage],
 	       (int)speed, bps / 1000, bps % 1000);
 }
@@ -391,23 +391,23 @@ static int spi_flash_test(struct spi_flash *flash, uint8_t *buf, ulong len,
 	struct test_info test;
 	int i;
 
-	printf("SPI flash test:\n");
+	debug("SPI flash test:\n");
 	memset(&test, '\0', sizeof(test));
 	test.base_ms = get_timer(0);
 	test.bytes = len;
 	if (spi_flash_erase(flash, offset, len)) {
-		printf("Erase failed\n");
+		debug("Erase failed\n");
 		return -1;
 	}
 	spi_test_next_stage(&test);
 
 	if (spi_flash_read(flash, offset, len, vbuf)) {
-		printf("Check read failed\n");
+		debug("Check read failed\n");
 		return -1;
 	}
 	for (i = 0; i < len; i++) {
 		if (vbuf[i] != 0xff) {
-			printf("Check failed at %d\n", i);
+			debug("Check failed at %d\n", i);
 			print_buffer(i, vbuf + i, 1, min(len - i, 0x40), 0);
 			return -1;
 		}
@@ -415,28 +415,28 @@ static int spi_flash_test(struct spi_flash *flash, uint8_t *buf, ulong len,
 	spi_test_next_stage(&test);
 
 	if (spi_flash_write(flash, offset, len, buf)) {
-		printf("Write failed\n");
+		debug("Write failed\n");
 		return -1;
 	}
 	memset(vbuf, '\0', len);
 	spi_test_next_stage(&test);
 
 	if (spi_flash_read(flash, offset, len, vbuf)) {
-		printf("Read failed\n");
+		debug("Read failed\n");
 		return -1;
 	}
 	spi_test_next_stage(&test);
 
 	for (i = 0; i < len; i++) {
 		if (buf[i] != vbuf[i]) {
-			printf("Verify failed at %d, good data:\n", i);
+			debug("Verify failed at %d, good data:\n", i);
 			print_buffer(i, buf + i, 1, min(len - i, 0x40), 0);
-			printf("Bad data:\n");
+			debug("Bad data:\n");
 			print_buffer(i, vbuf + i, 1, min(len - i, 0x40), 0);
 			return -1;
 		}
 	}
-	printf("Test passed\n");
+	debug("Test passed\n");
 	for (i = 0; i < STAGE_COUNT; i++)
 		show_time(&test, i);
 
@@ -463,13 +463,13 @@ static int do_spi_flash_test(int argc, char * const argv[])
 
 	vbuf = malloc(len);
 	if (!vbuf) {
-		printf("Cannot allocate memory (%lu bytes)\n", len);
+		debug("Cannot allocate memory (%lu bytes)\n", len);
 		return 1;
 	}
 	buf = malloc(len);
 	if (!buf) {
 		free(vbuf);
-		printf("Cannot allocate memory (%lu bytes)\n", len);
+		debug("Cannot allocate memory (%lu bytes)\n", len);
 		return 1;
 	}
 
@@ -479,7 +479,7 @@ static int do_spi_flash_test(int argc, char * const argv[])
 	free(vbuf);
 	free(buf);
 	if (ret) {
-		printf("Test failed\n");
+		debug("Test failed\n");
 		return 1;
 	}
 

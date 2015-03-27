@@ -164,7 +164,7 @@ int ext4fs_ls(const char *dirname)
 	status = ext4fs_find_file(dirname, &ext4fs_root->diropen, &dirnode,
 				  FILETYPE_DIRECTORY);
 	if (status != 1) {
-		printf("** Can not find directory. **\n");
+		debug("** Can not find directory. **\n");
 		return 1;
 	}
 
@@ -209,13 +209,13 @@ int ext4_read_file(const char *filename, void *buf, int offset, int len)
 	int len_read;
 
 	if (offset != 0) {
-		printf("** Cannot support non-zero offset **\n");
+		debug("** Cannot support non-zero offset **\n");
 		return -1;
 	}
 
 	file_len = ext4fs_open(filename);
 	if (file_len < 0) {
-		printf("** File not found %s **\n", filename);
+		debug("** File not found %s **\n", filename);
 		return -1;
 	}
 

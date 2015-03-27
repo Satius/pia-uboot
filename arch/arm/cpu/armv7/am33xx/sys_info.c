@@ -115,7 +115,7 @@ int print_cpuinfo(void)
 		sec_s = "?";
 	}
 
-	printf("%s-%s rev %d\n", cpu_s, sec_s, get_cpu_rev());
+	debug("%s-%s rev %d\n", cpu_s, sec_s, get_cpu_rev());
 
 	return 0;
 }

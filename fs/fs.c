@@ -32,7 +32,7 @@ static int fs_type = FS_TYPE_ANY;
 static inline int fs_probe_unsupported(block_dev_desc_t *fs_dev_desc,
 				      disk_partition_t *fs_partition)
 {
-	printf("** Unrecognized filesystem type **\n");
+	debug("** Unrecognized filesystem type **\n");
 	return -1;
 }
 
@@ -239,7 +239,7 @@ int fs_read(const char *filename, ulong addr, int offset, int len)
 
 	/* If we requested a specific number of bytes, check we got it */
 	if (ret >= 0 && len && ret != len) {
-		printf("** Unable to read file %s **\n", filename);
+		debug("** Unable to read file %s **\n", filename);
 		ret = -1;
 	}
 	fs_close();
@@ -258,7 +258,7 @@ int fs_write(const char *filename, ulong addr, int offset, int len)
 	unmap_sysmem(buf);
 
 	if (ret >= 0 && ret != len) {
-		printf("** Unable to write file %s **\n", filename);
+		debug("** Unable to write file %s **\n", filename);
 		ret = -1;
 	}
 	fs_close();
@@ -299,7 +299,7 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	} else {
 		filename = getenv("bootfile");
 		if (!filename) {
-			puts("** No boot file defined **\n");
+			UbootPuts("** No boot file defined **\n");
 			return 1;
 		}
 	}
@@ -318,13 +318,13 @@ int do_load(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	if (len_read <= 0)
 		return 1;
 
-	printf("%d bytes read in %lu ms", len_read, time);
+	debug("%d bytes read in %lu ms", len_read, time);
 	if (time > 0) {
-		puts(" (");
+		UbootPuts(" (");
 		print_size(len_read / time * 1000, "/s");
-		puts(")");
+		UbootPuts(")");
 	}
-	puts("\n");
+	UbootPuts("\n");
 
 	setenv_hex("filesize", len_read);
 
@@ -387,13 +387,13 @@ int do_save(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[],
 	if (len <= 0)
 		return 1;
 
-	printf("%d bytes written in %lu ms", len, time);
+	debug("%d bytes written in %lu ms", len, time);
 	if (time > 0) {
-		puts(" (");
+		UbootPuts(" (");
 		print_size(len / time * 1000, "/s");
-		puts(")");
+		UbootPuts(")");
 	}
-	puts("\n");
+	UbootPuts("\n");
 
 	return 0;
 }

@@ -202,20 +202,12 @@
 		"fi;\0" \
 	"mmcboot=mmc dev ${mmcdev}; " \
 		"if mmc rescan; then " \
-			"echo SD/MMC found on device ${mmcdev};" \
                         "if test ${gpio_enter} = yes; then " \
-                            "if run loadbootenvusr; then " \
-                                "echo Loaded environment from ...${bootenvusr};" \
-                                "run importbootenv;" \
-                            "fi;" \
+                            "run loadbootenvusr;" \
                         "else " \
-			"if run loadbootenv; then " \
-				"echo Loaded environment from ${bootenv};" \
-				"run importbootenv;" \
-			"fi;" \
+			"run loadbootenv;" \
                         "fi;" \
 			"if test -n $uenvcmd; then " \
-				"echo Running uenvcmd ...;" \
 				"run uenvcmd;" \
 			"fi;" \
 			"if run loadimage; then " \

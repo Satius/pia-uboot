@@ -45,8 +45,8 @@ static bd_t bdata __attribute__ ((section(".data")));
 #ifdef CONFIG_SPL_OS_BOOT
 __weak int spl_start_uboot(void)
 {
-	puts("SPL: Please implement spl_start_uboot() for your board\n");
-	puts("SPL: Direct Linux boot not active!\n");
+	UbootPuts("SPL: Please implement spl_start_uboot() for your board\n");
+	UbootPuts("SPL: Direct Linux boot not active!\n");
 	return 1;
 }
 #endif
@@ -249,7 +249,7 @@ void preloader_console_init(void)
 
 	gd->have_console = 1;
 
-	puts("\nU-Boot SPL " PLAIN_VERSION " (" U_BOOT_DATE " - " \
+	UbootPuts("\nU-Boot SPL " PLAIN_VERSION " (" U_BOOT_DATE " - " \
 			U_BOOT_TIME ")\n");
 #ifdef CONFIG_SPL_DISPLAY_PRINT
 	spl_display_print();

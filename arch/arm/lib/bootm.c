@@ -67,7 +67,7 @@ void arch_lmb_reserve(struct lmb *lmb)
  */
 static void announce_and_cleanup(int fake)
 {
-	printf("\nStarting kernel ...%s\n\n", fake ?
+	debug("\nStarting kernel ...%s\n\n", fake ?
 		"(fake run for tracing)" : "");
 	bootstage_mark_name(BOOTSTAGE_ID_BOOTM_HANDOFF, "start_kernel");
 #ifdef CONFIG_BOOTSTAGE_FDT
@@ -215,7 +215,7 @@ static void boot_prep_linux(bootm_headers_t *images)
 #ifdef CONFIG_OF_LIBFDT
 		debug("using: FDT\n");
 		if (image_setup_linux(images)) {
-			printf("FDT creation failed! hanging...");
+			debug("FDT creation failed! hanging...");
 			hang();
 		}
 #endif
@@ -239,7 +239,7 @@ static void boot_prep_linux(bootm_headers_t *images)
 		setup_board_tags(&params);
 		setup_end_tag(gd->bd);
 	} else {
-		printf("FDT and ATAGS support not compiled in - hanging\n");
+		debug("FDT and ATAGS support not compiled in - hanging\n");
 		hang();
 	}
 	do_nonsec_virt_switch();
@@ -274,7 +274,7 @@ static void boot_jump_linux(bootm_headers_t *images, int flag)
 	s = getenv("machid");
 	if (s) {
 		strict_strtoul(s, 16, &machid);
-		printf("Using machid 0x%lx from environment\n", machid);
+		debug("Using machid 0x%lx from environment\n", machid);
 	}
 
 	debug("## Transferring control to Linux (at address %08lx)" \
@@ -343,7 +343,7 @@ int bootz_setup(ulong image, ulong *start, ulong *end)
 	*start = zi->zi_start;
 	*end = zi->zi_end;
 
-	printf("Kernel image @ %#08lx [ %#08lx - %#08lx ]\n", image, *start,
+	debug("Kernel image @ %#08lx [ %#08lx - %#08lx ]\n", image, *start,
 	      *end);
 
 	return 0;

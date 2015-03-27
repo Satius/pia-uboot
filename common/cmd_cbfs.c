@@ -17,7 +17,7 @@ int do_cbfs_init(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	char *ep;
 
 	if (argc > 2) {
-		printf("usage: cbfsls [end of rom]>\n");
+		debug("usage: cbfsls [end of rom]>\n");
 		return 0;
 	}
 	if (argc == 2) {
@@ -29,7 +29,7 @@ int do_cbfs_init(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	}
 	file_cbfs_init(end_of_rom);
 	if (file_cbfs_result != CBFS_SUCCESS) {
-		printf("%s.\n", file_cbfs_error());
+		debug("%s.\n", file_cbfs_error());
 		return 1;
 	}
 	return 0;
@@ -52,7 +52,7 @@ int do_cbfs_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	long size;
 
 	if (argc < 3) {
-		printf("usage: cbfsload <addr> <filename> [bytes]\n");
+		debug("usage: cbfsload <addr> <filename> [bytes]\n");
 		return 1;
 	}
 
@@ -66,17 +66,17 @@ int do_cbfs_fsload(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[])
 	file = file_cbfs_find(argv[2]);
 	if (!file) {
 		if (file_cbfs_result == CBFS_FILE_NOT_FOUND)
-			printf("%s: %s\n", file_cbfs_error(), argv[2]);
+			debug("%s: %s\n", file_cbfs_error(), argv[2]);
 		else
-			printf("%s.\n", file_cbfs_error());
+			debug("%s.\n", file_cbfs_error());
 		return 1;
 	}
 
-	printf("reading %s\n", file_cbfs_name(file));
+	debug("reading %s\n", file_cbfs_name(file));
 
 	size = file_cbfs_read(file, (void *)offset, count);
 
-	printf("\n%ld bytes read\n", size);
+	debug("\n%ld bytes read\n", size);
 
 	setenv_hex("filesize", size);
 

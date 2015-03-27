@@ -215,7 +215,6 @@ int do_gpio_user_in_get_wrapper(cmd_tbl_t *cmdtp, int flag, int argc, char * con
                 return -1;
         }
         val = (data&(1u << PCA9554_I2C_ENTER_GPIO_OFFSET) ? 1:0);
-        printf("status of Enter GPIO Pin is %u\n", val);
         if(!val)
         {
             setenv("gpio_enter", gpio_set);

@@ -103,6 +103,7 @@ typedef volatile unsigned char	vu_char;
 #define _DEBUG	0
 #endif
 
+#define UBOOT_PUTS 0
 /*
  * Output a debug text when condition "cond" is met. The "cond" should be
  * computed by a preprocessor in the best case, allowing for the best
@@ -117,6 +118,11 @@ typedef volatile unsigned char	vu_char;
 #define debug(fmt, args...)			\
 	debug_cond(_DEBUG, fmt, ##args)
 
+#define UbootPuts(str) \
+  do {          \
+    if (UBOOT_PUTS)     \
+    puts(str);  \
+  } while (0)
 /*
  * An assertion is run-time check done in debug mode only. If DEBUG is not
  * defined then it is skipped. If DEBUG is defined and the assertion fails,

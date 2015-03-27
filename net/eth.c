@@ -185,11 +185,11 @@ int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 	if (memcmp(env_enetaddr, "\0\0\0\0\0\0", 6)) {
 		if (memcmp(dev->enetaddr, "\0\0\0\0\0\0", 6) &&
 				memcmp(dev->enetaddr, env_enetaddr, 6)) {
-			printf("\nWarning: %s MAC addresses don't match:\n",
+			debug("\nWarning: %s MAC addresses don't match:\n",
 				dev->name);
-			printf("Address in SROM is         %pM\n",
+			debug("Address in SROM is         %pM\n",
 				dev->enetaddr);
-			printf("Address in environment is  %pM\n",
+			debug("Address in environment is  %pM\n",
 				env_enetaddr);
 		}
 
@@ -197,7 +197,7 @@ int eth_write_hwaddr(struct eth_device *dev, const char *base_name,
 	} else if (is_valid_ether_addr(dev->enetaddr)) {
 		eth_setenv_enetaddr_by_index(base_name, eth_number,
 					     dev->enetaddr);
-		printf("\nWarning: %s using MAC address from net device\n",
+		debug("\nWarning: %s using MAC address from net device\n",
 			dev->name);
 	}
 
@@ -295,15 +295,15 @@ int eth_initialize(bd_t *bis)
 	 */
 	if (board_eth_init != __def_eth_init) {
 		if (board_eth_init(bis) < 0)
-			printf("Board Net Initialization Failed\n");
+			debug("Board Net Initialization Failed\n");
 	} else if (cpu_eth_init != __def_eth_init) {
 		if (cpu_eth_init(bis) < 0)
-			printf("CPU Net Initialization Failed\n");
+			debug("CPU Net Initialization Failed\n");
 	} else
-		printf("Net Initialization Skipped\n");
+		debug("Net Initialization Skipped\n");
 
 	if (!eth_devices) {
-		puts("No ethernet found.\n");
+		UbootPuts("No ethernet found.\n");
 		bootstage_error(BOOTSTAGE_ID_NET_ETH_START);
 	} else {
 		struct eth_device *dev = eth_devices;
@@ -312,21 +312,21 @@ int eth_initialize(bd_t *bis)
 		bootstage_mark(BOOTSTAGE_ID_NET_ETH_INIT);
 		do {
 			if (dev->index)
-				puts(", ");
+				UbootPuts(", ");
 
-			printf("%s", dev->name);
+			debug("%s", dev->name);
 
 			if (ethprime && strcmp(dev->name, ethprime) == 0) {
 				eth_current = dev;
-				puts(" [PRIME]");
+				UbootPuts(" [PRIME]");
 			}
 
 			if (strchr(dev->name, ' '))
-				puts("\nWarning: eth device name has a space!"
+				UbootPuts("\nWarning: eth device name has a space!"
 					"\n");
 
 			if (eth_write_hwaddr(dev, "eth", dev->index))
-				puts("\nWarning: failed to set MAC address\n");
+				UbootPuts("\nWarning: failed to set MAC address\n");
 
 			dev = dev->next;
 			num_devices++;
@@ -390,7 +390,7 @@ int eth_init(bd_t *bis)
 	struct eth_device *old_current, *dev;
 
 	if (!eth_current) {
-		puts("No ethernet found.\n");
+		UbootPuts("No ethernet found.\n");
 		return -1;
 	}
 

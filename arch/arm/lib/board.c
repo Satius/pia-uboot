@@ -104,7 +104,7 @@ static int init_baudrate(void)
 
 static int display_banner(void)
 {
-	printf("\n\n%s\n\n", version_string);
+	debug("\n\n%s\n\n", version_string);
 	debug("U-Boot code: %08lX -> %08lX  BSS: -> %08lX\n",
 	       (ulong)&_start,
 	       (ulong)&__bss_start, (ulong)&__bss_end);
@@ -131,10 +131,10 @@ static int display_dram_config(void)
 	int i;
 
 #ifdef DEBUG
-	puts("RAM Configuration:\n");
+	UbootPuts("RAM Configuration:\n");
 
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++) {
-		printf("Bank #%d: %08lx ", i, gd->bd->bi_dram[i].start);
+		debug("Bank #%d: %08lx ", i, gd->bd->bi_dram[i].start);
 		print_size(gd->bd->bi_dram[i].size, "\n");
 	}
 #else
@@ -143,7 +143,7 @@ static int display_dram_config(void)
 	for (i = 0; i < CONFIG_NR_DRAM_BANKS; i++)
 		size += gd->bd->bi_dram[i].size;
 
-	puts("DRAM:  ");
+	UbootPuts("DRAM:  ");
 	print_size(size, "\n");
 #endif
 
@@ -153,13 +153,13 @@ static int display_dram_config(void)
 #if defined(CONFIG_HARD_I2C) || defined(CONFIG_SYS_I2C)
 static int init_func_i2c(void)
 {
-	puts("I2C:   ");
+	UbootPuts("I2C:   ");
 #ifdef CONFIG_SYS_I2C
 	i2c_init_all();
 #else
 	i2c_init(CONFIG_SYS_I2C_SPEED, CONFIG_SYS_I2C_SLAVE);
 #endif
-	puts("ready\n");
+	UbootPuts("ready\n");
 	return (0);
 }
 #endif
@@ -493,7 +493,7 @@ static void display_fdt_model(const void *blob)
 	const char *model;
 
 	model = (char *)fdt_getprop(blob, 0, "model", NULL);
-	printf("Model: %s\n", model ? model : "<unknown>");
+	debug("Model: %s\n", model ? model : "<unknown>");
 }
 #endif
 
@@ -554,7 +554,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	power_init_board();
 
 #if !defined(CONFIG_SYS_NO_FLASH)
-	puts("Flash: ");
+	UbootPuts("Flash: ");
 
 	flash_size = flash_init();
 	if (flash_size > 0) {
@@ -566,7 +566,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		 * NOTE: Maybe we should add some WATCHDOG_RESET()? XXX
 		 */
 		if (getenv_yesno("flashchecksum") == 1) {
-			printf("  CRC: %08X", crc32(0,
+			debug("  CRC: %08X", crc32(0,
 				(const unsigned char *) CONFIG_SYS_FLASH_BASE,
 				flash_size));
 		}
@@ -575,13 +575,13 @@ void board_init_r(gd_t *id, ulong dest_addr)
 		print_size(flash_size, "\n");
 # endif /* CONFIG_SYS_FLASH_CHECKSUM */
 	} else {
-		puts(failed);
+		UbootPuts(failed);
 		hang();
 	}
 #endif
 
 #if defined(CONFIG_CMD_NAND)
-	puts("NAND:  ");
+	UbootPuts("NAND:  ");
 	nand_init();		/* go init the NAND */
 #endif
 
@@ -590,12 +590,12 @@ void board_init_r(gd_t *id, ulong dest_addr)
 #endif
 
 #ifdef CONFIG_GENERIC_MMC
-	puts("MMC:   ");
+	UbootPuts("MMC:   ");
 	mmc_initialize(gd->bd);
 #endif
 
 #ifdef CONFIG_CMD_SCSI
-	puts("SCSI:  ");
+	UbootPuts("SCSI:  ");
 	scsi_init();
 #endif
 
@@ -659,7 +659,7 @@ void board_init_r(gd_t *id, ulong dest_addr)
 	bb_miiphy_init();
 #endif
 #if defined(CONFIG_CMD_NET)
-	puts("Net:   ");
+	UbootPuts("Net:   ");
 	eth_initialize(gd->bd);
 #if defined(CONFIG_RESET_PHY_R)
 	debug("Reset Ethernet PHY\n");

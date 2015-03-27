@@ -268,7 +268,7 @@ static void image_print_type(const image_header_t *hdr)
 	type = genimg_get_type_name(image_get_type(hdr));
 	comp = genimg_get_comp_name(image_get_comp(hdr));
 
-	printf("%s %s %s (%s)\n", arch, os, type, comp);
+	debug("%s %s %s (%s)\n", arch, os, type, comp);
 }
 
 /**
@@ -289,17 +289,17 @@ void image_print_contents(const void *ptr)
 	const char *p;
 
 	p = IMAGE_INDENT_STRING;
-	printf("%sImage Name:   %.*s\n", p, IH_NMLEN, image_get_name(hdr));
+	debug("%sImage Name:   %.*s\n", p, IH_NMLEN, image_get_name(hdr));
 	if (IMAGE_ENABLE_TIMESTAMP) {
-		printf("%sCreated:      ", p);
+		debug("%sCreated:      ", p);
 		genimg_print_time((time_t)image_get_time(hdr));
 	}
-	printf("%sImage Type:   ", p);
+	debug("%sImage Type:   ", p);
 	image_print_type(hdr);
-	printf("%sData Size:    ", p);
+	debug("%sData Size:    ", p);
 	genimg_print_size(image_get_data_size(hdr));
-	printf("%sLoad Address: %08x\n", p, image_get_load(hdr));
-	printf("%sEntry Point:  %08x\n", p, image_get_ep(hdr));
+	debug("%sLoad Address: %08x\n", p, image_get_load(hdr));
+	debug("%sEntry Point:  %08x\n", p, image_get_ep(hdr));
 
 	if (image_check_type(hdr, IH_TYPE_MULTI) ||
 			image_check_type(hdr, IH_TYPE_SCRIPT)) {
@@ -307,11 +307,11 @@ void image_print_contents(const void *ptr)
 		ulong data, len;
 		ulong count = image_multi_count(hdr);
 
-		printf("%sContents:\n", p);
+		debug("%sContents:\n", p);
 		for (i = 0; i < count; i++) {
 			image_multi_getimg(hdr, i, &data, &len);
 
-			printf("%s   Image %d: ", p, i);
+			debug("%s   Image %d: ", p, i);
 			genimg_print_size(len);
 
 			if (image_check_type(hdr, IH_TYPE_SCRIPT) && i > 0) {
@@ -320,7 +320,7 @@ void image_print_contents(const void *ptr)
 				 * if planning to do something with
 				 * multiple files
 				 */
-				printf("%s    Offset = 0x%08lx\n", p, data);
+				debug("%s    Offset = 0x%08lx\n", p, data);
 			}
 		}
 	}
@@ -352,13 +352,13 @@ static const image_header_t *image_get_ramdisk(ulong rd_addr, uint8_t arch,
 	const image_header_t *rd_hdr = (const image_header_t *)rd_addr;
 
 	if (!image_check_magic(rd_hdr)) {
-		puts("Bad Magic Number\n");
+		UbootPuts("Bad Magic Number\n");
 		bootstage_error(BOOTSTAGE_ID_RD_MAGIC);
 		return NULL;
 	}
 
 	if (!image_check_hcrc(rd_hdr)) {
-		puts("Bad Header Checksum\n");
+		UbootPuts("Bad Header Checksum\n");
 		bootstage_error(BOOTSTAGE_ID_RD_HDR_CHECKSUM);
 		return NULL;
 	}
@@ -367,13 +367,13 @@ static const image_header_t *image_get_ramdisk(ulong rd_addr, uint8_t arch,
 	image_print_contents(rd_hdr);
 
 	if (verify) {
-		puts("   Verifying Checksum ... ");
+		UbootPuts("   Verifying Checksum ... ");
 		if (!image_check_dcrc(rd_hdr)) {
-			puts("Bad Data CRC\n");
+			UbootPuts("Bad Data CRC\n");
 			bootstage_error(BOOTSTAGE_ID_RD_CHECKSUM);
 			return NULL;
 		}
-		puts("OK\n");
+		UbootPuts("OK\n");
 	}
 
 	bootstage_mark(BOOTSTAGE_ID_RD_HDR_CHECKSUM);
@@ -381,7 +381,7 @@ static const image_header_t *image_get_ramdisk(ulong rd_addr, uint8_t arch,
 	if (!image_check_os(rd_hdr, IH_OS_LINUX) ||
 	    !image_check_arch(rd_hdr, arch) ||
 	    !image_check_type(rd_hdr, IH_TYPE_RAMDISK)) {
-		printf("No Linux %s Ramdisk Image\n",
+		debug("No Linux %s Ramdisk Image\n",
 				genimg_get_arch_name(arch));
 		bootstage_error(BOOTSTAGE_ID_RAMDISK);
 		return NULL;
@@ -493,10 +493,10 @@ void memmove_wd(void *to, void *from, size_t len, ulong chunksz)
 void genimg_print_size(uint32_t size)
 {
 #ifndef USE_HOSTCC
-	printf("%d Bytes = ", size);
+	debug("%d Bytes = ", size);
 	print_size(size, "\n");
 #else
-	printf("%d Bytes = %.2f kB = %.2f MB\n",
+	debug("%d Bytes = %.2f kB = %.2f MB\n",
 			size, (double)size / 1.024e3,
 			(double)size / 1.048576e6);
 #endif
@@ -509,11 +509,11 @@ void genimg_print_time(time_t timestamp)
 	struct rtc_time tm;
 
 	to_tm(timestamp, &tm);
-	printf("%4d-%02d-%02d  %2d:%02d:%02d UTC\n",
+	debug("%4d-%02d-%02d  %2d:%02d:%02d UTC\n",
 			tm.tm_year, tm.tm_mon, tm.tm_mday,
 			tm.tm_hour, tm.tm_min, tm.tm_sec);
 #else
-	printf("%s", ctime(&timestamp));
+	debug("%s", ctime(&timestamp));
 #endif
 }
 #endif
@@ -593,14 +593,14 @@ int get_table_entry_id(const table_entry_t *table,
 			return(t->id);
 	}
 
-	fprintf(stderr, "\nInvalid %s Type - valid names are", table_name);
+	debug("\nInvalid %s Type - valid names are", table_name);
 	for (t = table; t->id >= 0; ++t) {
 		if (t->sname == NULL)
 			continue;
-		fprintf(stderr, "%c %s", (first) ? ':' : ',', t->sname);
+		debug(stderr, "%c %s", (first) ? ':' : ',', t->sname);
 		first = 0;
 	}
-	fprintf(stderr, "\n");
+	debug("\n");
 #else
 	for (t = table; t->id >= 0; ++t) {
 #ifdef CONFIG_NEEDS_MANUAL_RELOC
@@ -722,7 +722,7 @@ ulong genimg_get_image(ulong img_addr)
 			break;
 #endif
 		default:
-			printf("   No valid image found at 0x%08lx\n",
+			debug("   No valid image found at 0x%08lx\n",
 				img_addr);
 			return ram_addr;
 		}
@@ -872,7 +872,7 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 		buf = map_sysmem(rd_addr, 0);
 		switch (genimg_get_format(buf)) {
 		case IMAGE_FORMAT_LEGACY:
-			printf("## Loading init Ramdisk from Legacy "
+			debug("## Loading init Ramdisk from Legacy "
 					"Image at %08lx ...\n", rd_addr);
 
 			bootstage_mark(BOOTSTAGE_ID_CHECK_RAMDISK);
@@ -913,7 +913,7 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 			} else
 #endif
 			{
-				puts("Wrong Ramdisk Image Format\n");
+				UbootPuts("Wrong Ramdisk Image Format\n");
 				rd_data = rd_len = rd_load = 0;
 				return 1;
 			}
@@ -927,7 +927,7 @@ int boot_get_ramdisk(int argc, char * const argv[], bootm_headers_t *images,
 		 * get second entry data start address and len.
 		 */
 		bootstage_mark(BOOTSTAGE_ID_RAMDISK);
-		printf("## Loading init Ramdisk from multi component "
+		debug("## Loading init Ramdisk from multi component "
 				"Legacy Image at %08lx ...\n",
 				(ulong)images->legacy_hdr_os);
 
@@ -1017,13 +1017,13 @@ int boot_ramdisk_high(struct lmb *lmb, ulong rd_data, ulong rd_len,
 								 0x1000);
 
 			if (*initrd_start == 0) {
-				puts("ramdisk - allocation error\n");
+				UbootPuts("ramdisk - allocation error\n");
 				goto error;
 			}
 			bootstage_mark(BOOTSTAGE_ID_COPY_RAMDISK);
 
 			*initrd_end = *initrd_start + rd_len;
-			printf("   Loading Ramdisk to %08lx, end %08lx ... ",
+			debug("   Loading Ramdisk to %08lx, end %08lx ... ",
 					*initrd_start, *initrd_end);
 
 			memmove_wd((void *)*initrd_start,
@@ -1037,7 +1037,7 @@ int boot_ramdisk_high(struct lmb *lmb, ulong rd_data, ulong rd_len,
 			 */
 			flush_cache((unsigned long)*initrd_start, rd_len);
 #endif
-			puts("OK\n");
+			UbootPuts("OK\n");
 		}
 	} else {
 		*initrd_start = 0;
@@ -1145,7 +1145,7 @@ int image_setup_linux(bootm_headers_t *images)
 		ret = boot_get_cmdline(lmb, &images->cmdline_start,
 				&images->cmdline_end);
 		if (ret) {
-			puts("ERROR with allocation of cmdline\n");
+			UbootPuts("ERROR with allocation of cmdline\n");
 			return ret;
 		}
 	}

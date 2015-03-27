@@ -57,7 +57,7 @@ static inline int board_is_800mhz(void)
 {
 	/* Silicon Revisions 2.x (rev 1+) support 800 MHz */
 	int rev = (readl(&cdev->deviceid) >> DEVICE_ID_REVSHIFT) & 0x3;
-	printf("Device Revision: %d\n", rev);
+	debug("Device Revision: %d\n", rev);
 
 	return (rev > 0);
 }
@@ -69,24 +69,24 @@ static int init_rtc_rx8801(void)
 	u8 regval;
 
 	/* RTC EX-8801 */
-	puts("Initializing RTC (clearing error flags)\n");
+	UbootPuts("Initializing RTC (clearing error flags)\n");
 	i2c_set_bus_num(PIA_RX8801_BUS);
 	if (i2c_probe(PIA_RX8801_ADDRESS)) {
-		puts(" FAIL: Could not probe RTC device\n");
+		UbootPuts(" FAIL: Could not probe RTC device\n");
 		return -ENODEV;
 	}
 
 	/* clear RESET */
 	regval = 0x40; /* 2s temp compensation, reset off */
 	if (i2c_write(PIA_RX8801_ADDRESS, 0x0f, 1, &regval, 1)) {
-		puts(" Couldn't write RTC control register\n");
+		UbootPuts(" Couldn't write RTC control register\n");
 		return -EIO;
 	}
 
 	/* clear error flags, they are undefined on first start */
 	regval = 0x00; /* clear all interrupt + error flags */
 	if (i2c_write(PIA_RX8801_ADDRESS, 0x0e, 1, &regval, 1)) {
-		puts(" Couldn't clear RTC flag register\n");
+		UbootPuts(" Couldn't clear RTC flag register\n");
 		return -EIO;
 	}
 
@@ -110,7 +110,7 @@ static int init_eeprom(int expansion, int rewrite)
 	struct am335x_baseboard_id config;
 
 	if (!rewrite && config.magic == 0xEE3355AA) {
-		printf("EEPROM already initialized\n");
+		debug("EEPROM already initialized\n");
 		return 0;
 	}
 
@@ -120,7 +120,7 @@ static int init_eeprom(int expansion, int rewrite)
 	memset(&config.config, 0, 32);
 	if (expansion) {
 #if defined (CONFIG_EXP_NAME)
-		printf("(Re)Writing Expansion EEPROM content\n");
+		debug("(Re)Writing Expansion EEPROM content\n");
 		/* init with default magic number, generic name and version info */
 		strncpy((char *)&config.name, CONFIG_EXP_NAME, 8);
 		strncpy((char *)&config.version, CONFIG_EXP_REV, 4);
@@ -132,7 +132,7 @@ static int init_eeprom(int expansion, int rewrite)
 #endif /* CONFIG_EXP_NAME */
 	} else {
 #if defined (CONFIG_BOARD_NAME)
-		printf("(Re)Writing EEPROM content\n");
+		debug("(Re)Writing EEPROM content\n");
 		/* init with default magic number, generic name and version info */
 		strncpy((char *)&config.name, CONFIG_BOARD_NAME, 8);
 		strncpy((char *)&config.version, CONFIG_BOARD_REVISION, 4);
@@ -155,10 +155,10 @@ static int init_eeprom(int expansion, int rewrite)
 
 	i2c_set_bus_num(bus);
 	if (i2c_probe(addr)) {
-		printf(" WARN: No EEPROM on I2C %d:%02x\n", bus, addr);
+		debug(" WARN: No EEPROM on I2C %d:%02x\n", bus, addr);
 		return -ENODEV;
 	}
-	printf("Writing EEPROM %d:0x%02x using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
+	debug("Writing EEPROM %d:0x%02x using MN:0x%x N:%.8s V:%.4s SN:%.12s\n",
 			bus, addr,
 			config.magic, config.name, config.version, config.serial);
 	do {
@@ -190,7 +190,7 @@ int am33xx_first_start(void)
 	if (board_is_e2(header))
 		init_rtc_rx8801();
 
-	puts("Board initialized, turn off the device and reboot "
+	UbootPuts("Board initialized, turn off the device and reboot "
 		"with a real system.\n");
 	return 0;
 }
@@ -207,20 +207,20 @@ static int read_eeprom_on_bus(int i2cbus)
 
 	/* Check if baseboard eeprom is available */
 	if (i2c_probe(CONFIG_SYS_I2C_EEPROM_ADDR)) {
-		printf("Could not probe the EEPROM on I2C%d\n", i2cbus);
+		debug("Could not probe the EEPROM on I2C%d\n", i2cbus);
 		return -ENODEV;
 	}
 
 	if (i2c_read(CONFIG_SYS_I2C_EEPROM_ADDR, 0, 1,
 			(uchar *)header, sizeof(struct am335x_baseboard_id))) {
-		puts("Could not read the EEPROM; something "
+		UbootPuts("Could not read the EEPROM; something "
 				"fundamentally wrong on the I2C bus.\n");
 		return -EIO;
 	}
 
 
 	if (header->magic != 0xEE3355AA || header->config[31] != 0) {
-		printf("Incorrect magic number (0x%x) in EEPROM\n",
+		debug("Incorrect magic number (0x%x) in EEPROM\n",
 				header->magic);
 		return -EIO;
 	}
@@ -243,7 +243,7 @@ static int read_eeprom(void)
 		struct am335x_baseboard_id oldheader;
 		memcpy(&oldheader, header, sizeof(struct am335x_baseboard_id));
 		if (read_eeprom_on_bus(1) < 0) {
-			puts("Could not read baseboard EEPROM; only PM module"
+			UbootPuts("Could not read baseboard EEPROM; only PM module"
 				"will be configured! Check baseboards EEPROM"
 				"content!\n");
 			memcpy(header, &oldheader, sizeof(struct am335x_baseboard_id));
@@ -251,47 +251,47 @@ static int read_eeprom(void)
 	}
 
 #if defined(CONFIG_PIA_FIRSTSTART) && defined(CONFIG_SPL_BUILD)
-	puts("Special FIRSTSTART version\n");
+	UbootPuts("Special FIRSTSTART version\n");
 	/* force reinitialization, normally the ID EEPROM is written here */
 	am33xx_first_start();
 #endif
 	if (err < 0)
 		return err;
 
-	puts("Detecting board... ");
+	UbootPuts("Detecting board... ");
 	i = 1;
 	if (board_is_e2(header)) {
-		puts("  PIA335E2 found\n");
+		UbootPuts("  PIA335E2 found\n");
 	} else if (board_is_mmi(header)) {
-		puts("  PIA335MI found\n");
+		UbootPuts("  PIA335MI found\n");
 	} else if (board_is_pm(header)) {
-		puts("  PIA335PM found\n");
+		UbootPuts("  PIA335PM found\n");
 	} else if (board_is_em(header)) {
-		puts("  Lokisa EM found\n");
+		UbootPuts("  Lokisa EM found\n");
 	} else if (board_is_sk(header)) {
-		puts("  SK with undetectable PM found\n");
+		UbootPuts("  SK with undetectable PM found\n");
 	} else  if (board_is_ebtft(header)) {
-		puts("  EB_TFT wih undetectable PM found\n");
+		UbootPuts("  EB_TFT wih undetectable PM found\n");
 	} else  if (board_is_apc(header)) {
-		puts("  APC wih undetectable PM found\n");
+		UbootPuts("  APC wih undetectable PM found\n");
 	} else {
 		i = 0;
 	}
 
 	if (i == 0) {
-		puts("Board not specified or unknown! "
+		UbootPuts("Board not specified or unknown! "
 			"Check ID EEPROM content!\n");
 		hang();
 	}
 
-	puts("  Options: ");
+	UbootPuts("  Options: ");
 	for (i = 0; i < 32; ++i) {
 		if (header->config[i]) {
 			putc(header->config[i]);
 		}
 	}
 	putc('\n');
-	printf("  EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
+	debug("  EEPROM: 0x%x - name:%.8s, - version: %.4s, - serial: %.12s\n",
 			header->magic, header->name, header->version, header->serial);
 
 	return 0;
@@ -307,7 +307,7 @@ static int test_rtc_tps(void)
 	debug("CHECK TPS RTC TPS65910...\n");
 	i2c_set_bus_num(0);
 	if (i2c_probe(PIA_TPS65910_CTRL_ADDRESS)) {
-		puts(" FAIL: Could not probe TPS device\n");
+		UbootPuts(" FAIL: Could not probe TPS device\n");
 		return -ENODEV;
 	}
 	/* dummy reads neccessary */
@@ -326,13 +326,13 @@ static int test_rtc_tps(void)
 	ec |= i2c_read(PIA_TPS65910_CTRL_ADDRESS, 5, 1, &yr, 1);
 
 	if (ec) {
-		puts("  FAIL: Unable to read TPS RTC register\n");
+		UbootPuts("  FAIL: Unable to read TPS RTC register\n");
 		return -EIO;
 	}
 	debug("  Date: 20%02d-%02d-%02d\n", TC(yr), TC(mon), TC(day));
 	debug("  Time:   %02d:%02d:%02d\n", TC(hr), TC(min), TC(sec));
 
-	puts("TPS RTC: OK\n");
+	UbootPuts("TPS RTC: OK\n");
 
 	return 0;
 }
@@ -344,23 +344,23 @@ static int test_rtc_rx8801(void)
 	debug("CHECK RTC RX-8801...\n");
 	i2c_set_bus_num(PIA_RX8801_BUS);
 	if (i2c_probe(PIA_RX8801_ADDRESS)) {
-		puts(" FAIL: Could not probe RTC device\n");
+		UbootPuts(" FAIL: Could not probe RTC device\n");
 		return -ENODEV;
 	}
 	ec = i2c_read(PIA_RX8801_ADDRESS, 0x0e, 1, &fl, 1);
 	if (fl & 0x01) {
-		puts("  WARN: Voltage Drop Flag set. "
+		UbootPuts("  WARN: Voltage Drop Flag set. "
 				"Temp. compensation was stopped, BAT might be damaged!\n");
 	}
 	if (fl & 0x02) {
-		puts("  WARN: Voltage Low Flag set. "
+		UbootPuts("  WARN: Voltage Low Flag set. "
 				"Data loss - RTC must be be re-initialized, check BAT!\n");
 	}
 
 	if (!(fl & 0x03)) {
-		puts("  Error Flags: OK\n");
+		UbootPuts("  Error Flags: OK\n");
 	} else {
-		puts("  Resetting RTC Flags\n");
+		UbootPuts("  Resetting RTC Flags\n");
 	}
 	ec = i2c_read(PIA_RX8801_ADDRESS, 0, 1, &sec, 1);
 	ec = i2c_read(PIA_RX8801_ADDRESS, 1, 1, &min, 1);
@@ -370,13 +370,13 @@ static int test_rtc_rx8801(void)
 	ec = i2c_read(PIA_RX8801_ADDRESS, 6, 1, &yr, 1);
 
 	if (ec) {
-		puts("  FAIL: Unable to read RTC register\n");
+		UbootPuts("  FAIL: Unable to read RTC register\n");
 		return -EIO;
 	}
 	debug("  Date: 20%02d-%02d-%02d\n", TC(yr), TC(mon), TC(day));
 	debug("  Time:   %02d:%02d:%02d\n", TC(hr), TC(min), TC(sec));
 
-	puts("RTC: OK\n");
+	UbootPuts("RTC: OK\n");
 	return 0;
 }
 
@@ -389,35 +389,35 @@ static int test_temp_sensor(void)
 static int test_supervisor_e2(void)
 {
 	int pb, wd;
-	puts("CHECK RESET...\n");
+	UbootPuts("CHECK RESET...\n");
 	pb = gpio_get_value(CONFIG_E2_PB_RESET_GPIO);
 	wd = gpio_get_value(CONFIG_E2_WD_RESET_GPIO);
-	printf(" reset lines: (w%d p%d)\n", pb, wd);
+	debug(" reset lines: (w%d p%d)\n", pb, wd);
 	if (wd == 1 && pb == 1) {
-		puts(" Cold Boot\n");
-		puts(" Enabling Watchdog, wait for RESET\n");
+		UbootPuts(" Cold Boot\n");
+		UbootPuts(" Enabling Watchdog, wait for RESET\n");
 		gpio_set_value(CONFIG_E2_WD_SET1_GPIO, 0);
 		/* the WD has an initial timeout of >60s, so it would take at least
 		 * 1 min for the board to restart after poweron */
 		mdelay(1000);
 		//hang();
 	} else if (wd == 0) {
-		puts(" WatchDog Reset\n");
+		UbootPuts(" WatchDog Reset\n");
 	} else if (pb == 0) {
-		puts(" PushButton Reset\n");
+		UbootPuts(" PushButton Reset\n");
 	} else {
-		puts(" None or Soft Reset\n");
+		UbootPuts(" None or Soft Reset\n");
 	}
 #if 0
 #ifdef CONFIG_E2_FF_CLOCK_GPIO
-	puts(" Clearing RESET Flags\n");
+	UbootPuts(" Clearing RESET Flags\n");
 	gpio_set_value(CONFIG_E2_FF_CLOCK_GPIO, 1); /* reset flipflops */
 	mdelay(1);
 	gpio_set_value(CONFIG_E2_FF_CLOCK_GPIO, 0);
 #endif
 #endif
 	pb = gpio_get_value(CONFIG_E2_24V_FAIL_GPIO);
-	printf("24V_Fail: %s\n", (pb ? "HIGH" : "LOW"));
+	debug("24V_Fail: %s\n", (pb ? "HIGH" : "LOW"));
 
 	return 0;
 }
@@ -427,7 +427,7 @@ static int test_supervisor_mmi(void)
 	int pb;
 
 	pb = gpio_get_value(CONFIG_MMI_3_3V_FAIL_GPIO);
-	printf("3.3V_Fail: %s\n", (pb ? "HIGH" : "LOW"));
+	debug("3.3V_Fail: %s\n", (pb ? "HIGH" : "LOW"));
 
 	return 0;
 }
@@ -436,12 +436,12 @@ static int test_pia(void)
 {
 	int rc = 0;
 
-	printf("\nRunning board tests on %.8s Rev%.4s\n\n",
+	debug("\nRunning board tests on %.8s Rev%.4s\n\n",
 			header.name, header.version);
 	if (board_is_e2(header)) {
 		rc |= test_supervisor_e2();
 		rc |= test_rtc_rx8801();
-		puts("Enabling POE output\n");
+		UbootPuts("Enabling POE output\n");
 		gpio_direction_output(105, 1);
 		gpio_direction_output(116, 1);
 	} else if (board_is_mmi(header)) {
@@ -456,7 +456,7 @@ static int test_pia(void)
 
 #else
 static inline int test_pia(void) {
-	puts("Board tests disabled\n");
+	UbootPuts("Board tests disabled\n");
 	return 0;
 }
 #endif /* PIA_TESTING */
@@ -468,7 +468,7 @@ int board_phy_config(struct phy_device *phydev)
 	if (board_is_e2(header)) {
 		int i, eth_cnt = 5;
 
-		puts("Initializing ethernet switch\n");
+		UbootPuts("Initializing ethernet switch\n");
 		phy_write(phydev, 30, 0, 0x175c);
 		mdelay(5); /* min 2 ms */
 		reg = phy_read(phydev, 30, 0);
@@ -545,7 +545,7 @@ int board_eth_init(bd_t *bis)
 #if (defined(CONFIG_DRIVER_TI_CPSW) && !defined(CONFIG_SPL_BUILD)) || \
 	(defined(CONFIG_SPL_ETH_SUPPORT) && defined(CONFIG_SPL_BUILD))
 	if (!getenv("ethaddr")) {
-		printf("<ethaddr> not set. Validating first E-fuse MAC\n");
+		debug("<ethaddr> not set. Validating first E-fuse MAC\n");
 
 		if (is_valid_ether_addr(mac_addr))
 			eth_setenv_enetaddr("ethaddr", mac_addr);
@@ -570,7 +570,7 @@ int board_eth_init(bd_t *bis)
 
 	rv = cpsw_register(&cpsw_data);
 	if (rv < 0)
-		printf("Error %d registering CPSW switch\n", rv);
+		debug("Error %d registering CPSW switch\n", rv);
 	else
 		n += rv;
 #endif
@@ -580,21 +580,21 @@ int board_eth_init(bd_t *bis)
 		const char *devname;
 
 		devname = miiphy_get_current_dev();
-		puts("Initializing ethernet switch\n");
+		UbootPuts("Initializing ethernet switch\n");
 		res = miiphy_write(devname, 20, 2, 0x175d);
 		//phy_write(phydev, 20, 2, 0x175d);
 		mdelay(5); /* min 2 ms */
-		printf("APC: enabling Ethernet switch Mirror Mode on second port %d\n", res);
+		debug("APC: enabling Ethernet switch Mirror Mode on second port %d\n", res);
 		miiphy_read(devname, 20, 21, &reg);
-		printf("PHY 20:21 - %04x\n", reg);
+		debug("PHY 20:21 - %04x\n", reg);
 		reg = 0x5002; // mirror second port to, cpu port
 		res = miiphy_write(devname, 20, 21, reg);
-		printf("res: %d\n", res);
+		debug("res: %d\n", res);
 		miiphy_read(devname, 20, 20, &reg);
-		printf("PHY 20:20 - %04x\n", reg);
+		debug("PHY 20:20 - %04x\n", reg);
 		reg = 0xe002;
 		res = miiphy_write(devname, 20, 20, reg);
-		printf("res: %d\n", res);
+		debug("res: %d\n", res);
 	}
 #endif
 
@@ -607,20 +607,20 @@ static int init_tps65910(void)
 	u8 regval;
 
 	/* RTC on TPS65910 */
-	puts("Initializing TPS\n");
+	UbootPuts("Initializing TPS\n");
 	i2c_set_bus_num(0);
 	if (i2c_probe(PIA_TPS65910_CTRL_ADDRESS)) {
-		puts(" FAIL: Could not probe RTC device\n");
+		UbootPuts(" FAIL: Could not probe RTC device\n");
 		return -ENODEV;
 	}
 
 	i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1); /* dummy */
 	i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1);
-	printf(" TPS status: 0x%x\n", regval);
+	debug(" TPS status: 0x%x\n", regval);
 	/* clear powerup and alarm flags */
 	regval = 0xC0;
 	if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1)) {
-		puts(" FAIL: Couldn't write RTC STATUS register\n");
+		UbootPuts(" FAIL: Couldn't write RTC STATUS register\n");
 		return -EIO;
 	}
 	udelay(10000);
@@ -629,23 +629,23 @@ static int init_tps65910(void)
 		/* start clock, safe to set again */
 		regval = 0x01; /* 24 hour, direct reg access, rtc running */
 		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x10, 1, &regval, 1)) {
-			puts(" Couldn't write RTC CONTROL register\n");
+			UbootPuts(" Couldn't write RTC CONTROL register\n");
 			return -EIO;
 		}
 		udelay(10000);
 		if (i2c_read(PIA_TPS65910_CTRL_ADDRESS, 0x11, 1, &regval, 1) ||
 				((regval & 0x02) == 0)) {
-			puts(" WARN: RTC not running!");
+			UbootPuts(" WARN: RTC not running!");
 		}
 	}
 	/* only enable battery charger for devices utilizing the TPS VBACKUP */
 	if (board_is_mmi(header) || board_is_em(header) ||
 		board_is_ebtft(header) || board_is_sk(header)) {
-		puts("Initializing TPS Battery Charger... 3.15V\n");
+		UbootPuts("Initializing TPS Battery Charger... 3.15V\n");
 		// BBCHG 3.15V enable charge
 		regval = ((0x02 << 1) | 0x01);
 		if (i2c_write(PIA_TPS65910_CTRL_ADDRESS, 0x39, 1, &regval, 1)) {
-			puts(" FAIL: Couldn't enable battery charger!\n");
+			UbootPuts(" FAIL: Couldn't enable battery charger!\n");
 			return -EIO;
 		}
 	}
@@ -699,7 +699,7 @@ void am33xx_spl_board_init(void)
 
 	/* Get the frequency */
 	dpll_mpu_opp100.m = am335x_get_efuse_mpu_max_freq(cdev);
-	printf("Setting up MPU max freq: %d\n", dpll_mpu_opp100.m);
+	debug("Setting up MPU max freq: %d\n", dpll_mpu_opp100.m);
 
 	/* from ti evm
 	 * Depending on MPU clock and PG we will need a different
@@ -770,7 +770,7 @@ void set_mux_conf_regs(void)
 {
 	debug(__FUNCTION__);
 	if (read_eeprom() < 0)
-		puts("Could not get board ID.\n");
+		UbootPuts("Could not get board ID.\n");
 
 	enable_board_pin_mux(header);
 }
@@ -835,7 +835,7 @@ int board_init(void)
 #endif
 
 	if (read_eeprom() < 0)
-		puts("Could not get board ID\n");
+		UbootPuts("Could not get board ID\n");
 
 	gd->bd->bi_boot_params = PHYS_DRAM_1 + 0x100;
 

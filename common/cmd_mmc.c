@@ -31,16 +31,16 @@ int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		}
 
 		if (mmc_legacy_init(dev) != 0) {
-			puts("No MMC card found\n");
+			UbootPuts("No MMC card found\n");
 			return 1;
 		}
 
 		curr_device = dev;
-		printf("mmc%d is available\n", curr_device);
+		debug("mmc%d is available\n", curr_device);
 	} else if (strcmp(argv[1], "device") == 0) {
 		if (argc == 2) {
 			if (curr_device < 0) {
-				puts("No MMC device available\n");
+				UbootPuts("No MMC device available\n");
 				return 1;
 			}
 		} else if (argc == 3) {
@@ -55,7 +55,7 @@ int do_mmc (cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			return CMD_RET_USAGE;
 		}
 
-		printf("mmc%d is current device\n", curr_device);
+		debug("mmc%d is current device\n", curr_device);
 	} else {
 		return CMD_RET_USAGE;
 	}
@@ -107,7 +107,7 @@ static int do_mmcinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		if (get_mmc_num() > 0)
 			curr_device = 0;
 		else {
-			puts("No MMC device available\n");
+			UbootPuts("No MMC device available\n");
 			return 1;
 		}
 	}
@@ -120,7 +120,7 @@ static int do_mmcinfo(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		print_mmcinfo(mmc);
 		return 0;
 	} else {
-		printf("no mmc device at slot %x\n", curr_device);
+		debug("no mmc device at slot %x\n", curr_device);
 		return 1;
 	}
 }
@@ -142,7 +142,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		if (get_mmc_num() > 0)
 			curr_device = 0;
 		else {
-			puts("No MMC device available\n");
+			UbootPuts("No MMC device available\n");
 			return 1;
 		}
 	}
@@ -155,7 +155,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		mmc = find_mmc_device(curr_device);
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", curr_device);
+			debug("no mmc device at slot %x\n", curr_device);
 			return 1;
 		}
 
@@ -174,7 +174,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		mmc = find_mmc_device(curr_device);
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", curr_device);
+			debug("no mmc device at slot %x\n", curr_device);
 			return 1;
 		}
 		mmc_init(mmc);
@@ -185,7 +185,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			return 0;
 		}
 
-		puts("get mmc type error!\n");
+		UbootPuts("get mmc type error!\n");
 		return 1;
 	} else if (strcmp(argv[1], "list") == 0) {
 		if (argc != 2)
@@ -204,7 +204,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			dev = (int)simple_strtoul(argv[2], NULL, 10);
 			part = (int)simple_strtoul(argv[3], NULL, 10);
 			if (part > PART_ACCESS_MASK) {
-				printf("#part_num shouldn't be larger"
+				debug("#part_num shouldn't be larger"
 					" than %d\n", PART_ACCESS_MASK);
 				return 1;
 			}
@@ -213,7 +213,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		mmc = find_mmc_device(dev);
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", dev);
+			debug("no mmc device at slot %x\n", dev);
 			return 1;
 		}
 
@@ -221,7 +221,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		if (part != -1) {
 			int ret;
 			if (mmc->part_config == MMCPART_NOAVAILABLE) {
-				printf("Card doesn't support part_switch\n");
+				debug("Card doesn't support part_switch\n");
 				return 1;
 			}
 
@@ -230,15 +230,15 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 				if (!ret)
 					mmc->part_num = part;
 
-				printf("switch to partitions #%d, %s\n",
+				debug("switch to partitions #%d, %s\n",
 						part, (!ret) ? "OK" : "ERROR");
 			}
 		}
 		curr_device = dev;
 		if (mmc->part_config == MMCPART_NOAVAILABLE)
-			printf("mmc%d is current device\n", curr_device);
+			debug("mmc%d is current device\n", curr_device);
 		else
-			printf("mmc%d(part %d) is current device\n",
+			debug("mmc%d(part %d) is current device\n",
 				curr_device, mmc->part_num);
 
 		return 0;
@@ -259,12 +259,12 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		mmc = find_mmc_device(dev);
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", dev);
+			debug("no mmc device at slot %x\n", dev);
 			return 1;
 		}
 
 		if (IS_SD(mmc)) {
-			puts("PARTITION_CONFIG only exists on eMMC\n");
+			UbootPuts("PARTITION_CONFIG only exists on eMMC\n");
 			return 1;
 		}
 
@@ -286,12 +286,12 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		mmc = find_mmc_device(dev);
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", dev);
+			debug("no mmc device at slot %x\n", dev);
 			return 1;
 		}
 
 		if (IS_SD(mmc)) {
-			puts("BOOT_BUS_WIDTH only exists on eMMC\n");
+			UbootPuts("BOOT_BUS_WIDTH only exists on eMMC\n");
 			return 1;
 		}
 
@@ -312,22 +312,22 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 
 		mmc = find_mmc_device(dev);
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", dev);
+			debug("no mmc device at slot %x\n", dev);
 			return 1;
 		}
 
 		if (IS_SD(mmc)) {
-			printf("It is not a EMMC device\n");
+			debug("It is not a EMMC device\n");
 			return 1;
 		}
 
 		if (0 == mmc_boot_partition_size_change(mmc,
 							bootsize, rpmbsize)) {
-			printf("EMMC boot partition Size %d MB\n", bootsize);
-			printf("EMMC RPMB partition Size %d MB\n", rpmbsize);
+			debug("EMMC boot partition Size %d MB\n", bootsize);
+			debug("EMMC RPMB partition Size %d MB\n", rpmbsize);
 			return 0;
 		} else {
-			printf("EMMC boot partition Size change Failed.\n");
+			debug("EMMC boot partition Size change Failed.\n");
 			return 1;
 		}
 	} else if (strcmp(argv[1], "rst-function") == 0) {
@@ -348,18 +348,18 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		}
 
 		if (enable > 2 || enable < 0) {
-			puts("Invalid RST_n_ENABLE value\n");
+			UbootPuts("Invalid RST_n_ENABLE value\n");
 			return CMD_RET_USAGE;
 		}
 
 		mmc = find_mmc_device(dev);
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", dev);
+			debug("no mmc device at slot %x\n", dev);
 			return 1;
 		}
 
 		if (IS_SD(mmc)) {
-			puts("RST_n_FUNCTION only exists on eMMC\n");
+			UbootPuts("RST_n_FUNCTION only exists on eMMC\n");
 			return 1;
 		}
 
@@ -373,11 +373,11 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		int ret;
 
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", curr_device);
+			debug("no mmc device at slot %x\n", curr_device);
 			return 1;
 		}
 		ret = mmc_set_dsr(mmc, val);
-		printf("set dsr %s\n", (!ret) ? "OK, force rescan" : "ERROR");
+		debug("set dsr %s\n", (!ret) ? "OK, force rescan" : "ERROR");
 		if (!ret) {
 			mmc->has_init = 0;
 			if (mmc_init(mmc))
@@ -411,18 +411,18 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 		cnt = simple_strtoul(argv[idx + 1], NULL, 16);
 
 		if (!mmc) {
-			printf("no mmc device at slot %x\n", curr_device);
+			debug("no mmc device at slot %x\n", curr_device);
 			return 1;
 		}
 
-		printf("\nMMC %s: dev # %d, block # %d, count %d ... ",
+		debug("\nMMC %s: dev # %d, block # %d, count %d ... ",
 				argv[1], curr_device, blk, cnt);
 
 		mmc_init(mmc);
 
 		if ((state == MMC_WRITE || state == MMC_ERASE)) {
 			if (mmc_getwp(mmc) == 1) {
-				printf("Error: card is write protected!\n");
+				debug("Error: card is write protected!\n");
 				return 1;
 			}
 		}
@@ -445,7 +445,7 @@ static int do_mmcops(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 			BUG();
 		}
 
-		printf("%d blocks %s: %s\n",
+		debug("%d blocks %s: %s\n",
 				n, argv[1], (n == cnt) ? "OK" : "ERROR");
 		return (n == cnt) ? 0 : 1;
 	}

@@ -102,13 +102,13 @@ void set_default_env(const char *s)
 	int flags = 0;
 
 	if (sizeof(default_environment) > ENV_SIZE) {
-		puts("*** Error - default environment is too large\n\n");
+		UbootPuts("*** Error - default environment is too large\n\n");
 		return;
 	}
 
 	if (s) {
 		if (*s == '!') {
-			printf("*** Warning - %s, "
+			debug("*** Warning - %s, "
 				"using default environment\n\n",
 				s + 1);
 		} else {
@@ -116,7 +116,7 @@ void set_default_env(const char *s)
 			puts(s);
 		}
 	} else {
-		puts("Using default environment\n\n");
+		UbootPuts("Using default environment\n\n");
 	}
 
 	if (himport_r(&env_htab, (char *)default_environment,

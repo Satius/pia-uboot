@@ -14,9 +14,9 @@
 int display_options (void)
 {
 #if defined(BUILD_TAG)
-	printf ("\n\n%s, Build: %s\n\n", version_string, BUILD_TAG);
+	debug ("\n\n%s, Build: %s\n\n", version_string, BUILD_TAG);
 #else
-	printf ("\n\n%s\n\n", version_string);
+	debug ("\n\n%s\n\n", version_string);
 #endif
 	return 0;
 }
@@ -43,7 +43,7 @@ void print_size(unsigned long long size, const char *s)
 	}
 
 	if (!c) {
-		printf("%llu Bytes%s", size, s);
+		debug("%llu Bytes%s", size, s);
 		return;
 	}
 
@@ -60,11 +60,11 @@ void print_size(unsigned long long size, const char *s)
 		}
 	}
 
-	printf ("%lu", n);
+	debug ("%lu", n);
 	if (m) {
-		printf (".%ld", m);
+		debug (".%ld", m);
 	}
-	printf (" %ciB%s", c, s);
+	debug (" %ciB%s", c, s);
 }
 
 /*
@@ -108,7 +108,7 @@ int print_buffer(ulong addr, const void *data, uint width, uint count,
 
 	while (count) {
 		uint thislinelen = linelen;
-		printf("%08lx:", addr);
+		debug("%08lx:", addr);
 
 		/* check for overflow condition */
 		if (count < thislinelen)
@@ -127,9 +127,9 @@ int print_buffer(ulong addr, const void *data, uint width, uint count,
 			else
 				x = lb.uc[i] = *(volatile uint8_t *)data;
 #ifdef CONFIG_SYS_SUPPORT_64BIT_DATA
-			printf(" %0*llx", width * 2, x);
+			debug(" %0*llx", width * 2, x);
 #else
-			printf(" %0*x", width * 2, x);
+			debug(" %0*x", width * 2, x);
 #endif
 			data += width;
 		}
@@ -147,7 +147,7 @@ int print_buffer(ulong addr, const void *data, uint width, uint count,
 				lb.uc[i] = '.';
 		}
 		lb.uc[i] = '\0';
-		printf("    %s\n", lb.uc);
+		debug("    %s\n", lb.uc);
 
 		/* update references */
 		addr += thislinelen * width;

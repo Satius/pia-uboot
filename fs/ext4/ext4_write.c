@@ -82,7 +82,7 @@ int ext4fs_get_bgdtable(void)
 		goto fail;
 
 	if (ext4fs_log_gdt(fs->gdtable)) {
-		printf("Error in ext4fs_log_gdt\n");
+		debug("Error in ext4fs_log_gdt\n");
 		return -1;
 	}
 
@@ -106,7 +106,7 @@ static void delete_single_indirect_block(struct ext2_inode *inode)
 	struct ext_filesystem *fs = get_fs();
 	char *journal_buffer = zalloc(fs->blksz);
 	if (!journal_buffer) {
-		printf("No memory\n");
+		debug("No memory\n");
 		return;
 	}
 	/* get  block group descriptor table */
@@ -160,7 +160,7 @@ static void delete_double_indirect_block(struct ext2_inode *inode)
 	struct ext_filesystem *fs = get_fs();
 	char *journal_buffer = zalloc(fs->blksz);
 	if (!journal_buffer) {
-		printf("No memory\n");
+		debug("No memory\n");
 		return;
 	}
 	/* get the block group descriptor table */
@@ -169,7 +169,7 @@ static void delete_double_indirect_block(struct ext2_inode *inode)
 	if (inode->b.blocks.double_indir_block != 0) {
 		di_buffer = zalloc(fs->blksz);
 		if (!di_buffer) {
-			printf("No memory\n");
+			debug("No memory\n");
 			return;
 		}
 		DIB_start_addr = (unsigned int *)di_buffer;
@@ -262,7 +262,7 @@ static void delete_triple_indirect_block(struct ext2_inode *inode)
 	struct ext_filesystem *fs = get_fs();
 	char *journal_buffer = zalloc(fs->blksz);
 	if (!journal_buffer) {
-		printf("No memory\n");
+		debug("No memory\n");
 		return;
 	}
 	/* get block group descriptor table */
@@ -271,7 +271,7 @@ static void delete_triple_indirect_block(struct ext2_inode *inode)
 	if (inode->b.blocks.triple_indir_block != 0) {
 		tigp_buffer = zalloc(fs->blksz);
 		if (!tigp_buffer) {
-			printf("No memory\n");
+			debug("No memory\n");
 			return;
 		}
 		tib_start_addr = (unsigned int *)tigp_buffer;
@@ -582,7 +582,7 @@ static int ext4fs_delete_file(int inodeno)
 	ext4fs_deinit();
 
 	if (ext4fs_init() != 0) {
-		printf("error in File System init\n");
+		debug("error in File System init\n");
 		goto fail;
 	}
 
@@ -629,7 +629,7 @@ int ext4fs_init(void)
 	/* get the block group descriptor table */
 	fs->gdtable_blkno = ((EXT2_MIN_BLOCK_SIZE == fs->blksz) + 1);
 	if (ext4fs_get_bgdtable() == -1) {
-		printf("Error in getting the block group descriptor table\n");
+		debug("Error in getting the block group descriptor table\n");
 		goto fail;
 	}
 	fs->bgd = (struct ext2_block_group *)fs->gdtable;
@@ -864,7 +864,7 @@ int ext4fs_write(const char *fname, unsigned char *buffer,
 		goto fail;
 
 	if (ext4fs_init() != 0) {
-		printf("error in File System init\n");
+		debug("error in File System init\n");
 		return -1;
 	}
 	inodes_per_block = fs->blksz / fs->inodesz;
@@ -895,7 +895,7 @@ int ext4fs_write(const char *fname, unsigned char *buffer,
 	blocks_remaining = blks_reqd_for_file;
 	/* test for available space in partition */
 	if (fs->sb->free_blocks < blks_reqd_for_file) {
-		printf("Not enough space on partition !!!\n");
+		debug("Not enough space on partition !!!\n");
 		goto fail;
 	}
 
@@ -939,7 +939,7 @@ int ext4fs_write(const char *fname, unsigned char *buffer,
 		goto fail;
 	/* copy the file content into data blocks */
 	if (ext4fs_write_file(file_inode, 0, sizebytes, (char *)buffer) == -1) {
-		printf("Error in copying content\n");
+		debug("Error in copying content\n");
 		goto fail;
 	}
 	ibmap_idx = parent_inodeno / ext4fs_root->sblock.inodes_per_group;

@@ -91,7 +91,7 @@ int fat_register_device(block_dev_desc_t *dev_desc, int part_no)
 	/* Read the partition table, if present */
 	if (get_partition_info(dev_desc, part_no, &info)) {
 		if (part_no != 0) {
-			printf("** Partition %d not valid on device %d **\n",
+			debug("** Partition %d not valid on device %d **\n",
 					part_no, dev_desc->dev);
 			return -1;
 		}
@@ -274,7 +274,7 @@ get_cluster(fsdata *mydata, __u32 clustnum, __u8 *buffer, unsigned long size)
 	if ((unsigned long)buffer & (ARCH_DMA_MINALIGN - 1)) {
 		ALLOC_CACHE_ALIGN_BUFFER(__u8, tmpbuf, mydata->sect_size);
 
-		printf("FAT: Misaligned buffer address (%p)\n", buffer);
+		debug("FAT: Misaligned buffer address (%p)\n", buffer);
 
 		while (size >= mydata->sect_size) {
 			ret = disk_read(startsect++, 1, tmpbuf);
@@ -367,7 +367,7 @@ get_contents(fsdata *mydata, dir_entry *dentptr, unsigned long pos,
 		actsize = min(filesize, bytesperclust);
 		if (get_cluster(mydata, curclust, get_contents_vfatname_block,
 				(int)actsize) != 0) {
-			printf("Error reading cluster\n");
+			debug("Error reading cluster\n");
 			return -1;
 		}
 		filesize -= actsize;
@@ -407,14 +407,14 @@ get_contents(fsdata *mydata, dir_entry *dentptr, unsigned long pos,
 		/* get remaining bytes */
 		actsize = filesize;
 		if (get_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
-			printf("Error reading cluster\n");
+			debug("Error reading cluster\n");
 			return -1;
 		}
 		gotsize += actsize;
 		return gotsize;
 getit:
 		if (get_cluster(mydata, curclust, buffer, (int)actsize) != 0) {
-			printf("Error reading cluster\n");
+			debug("Error reading cluster\n");
 			return -1;
 		}
 		gotsize += (int)actsize;
@@ -424,7 +424,7 @@ getit:
 		curclust = get_fatent(mydata, endclust);
 		if (CHECK_CLUST(curclust, mydata->fatsize)) {
 			debug("curclust: 0x%x\n", curclust);
-			printf("Invalid FAT entry\n");
+			debug("Invalid FAT entry\n");
 			return gotsize;
 		}
 		actsize = bytesperclust;
@@ -503,7 +503,7 @@ get_vfatname(fsdata *mydata, int curclust, __u8 *cluster,
 		curclust = get_fatent(mydata, curclust);
 		if (CHECK_CLUST(curclust, mydata->fatsize)) {
 			debug("curclust: 0x%x\n", curclust);
-			printf("Invalid FAT entry\n");
+			debug("Invalid FAT entry\n");
 			return -1;
 		}
 
@@ -633,12 +633,12 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 						}
 						if (doit) {
 							if (dirc == ' ') {
-								printf(" %8ld   %s%c\n",
+								debug(" %8ld   %s%c\n",
 									(long)FAT2CPU32(dentptr->size),
 									l_name,
 									dirc);
 							} else {
-								printf("            %s%c\n",
+								debug("            %s%c\n",
 									l_name,
 									dirc);
 							}
@@ -655,7 +655,7 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 			}
 			if (dentptr->name[0] == 0) {
 				if (dols) {
-					printf("\n%d file(s), %d dir(s)\n\n",
+					debug("\n%d file(s), %d dir(s)\n\n",
 						files, dirs);
 				}
 				debug("Dentname == NULL - %d\n", i);
@@ -690,11 +690,11 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 
 				if (doit) {
 					if (dirc == ' ') {
-						printf(" %8ld   %s%c\n",
+						debug(" %8ld   %s%c\n",
 							(long)FAT2CPU32(dentptr->size),
 							s_name, dirc);
 					} else {
-						printf("            %s%c\n",
+						debug("            %s%c\n",
 							s_name, dirc);
 					}
 				}
@@ -724,7 +724,7 @@ static dir_entry *get_dentfromdir(fsdata *mydata, int startsect,
 		curclust = get_fatent(mydata, curclust);
 		if (CHECK_CLUST(curclust, mydata->fatsize)) {
 			debug("curclust: 0x%x\n", curclust);
-			printf("Invalid FAT entry\n");
+			debug("Invalid FAT entry\n");
 			return NULL;
 		}
 	}
@@ -847,7 +847,7 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 	mydata->sect_size = (bs.sector_size[1] << 8) + bs.sector_size[0];
 	mydata->clust_size = bs.cluster_size;
 	if (mydata->sect_size != cur_part_info.blksz) {
-		printf("Error: FAT sector size mismatch (fs=%hu, dev=%lu)\n",
+		debug("Error: FAT sector size mismatch (fs=%hu, dev=%lu)\n",
 				mydata->sect_size, cur_part_info.blksz);
 		return -1;
 	}
@@ -974,12 +974,12 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 						}
 						if (doit) {
 							if (dirc == ' ') {
-								printf(" %8ld   %s%c\n",
+								debug(" %8ld   %s%c\n",
 									(long)FAT2CPU32(dentptr->size),
 									l_name,
 									dirc);
 							} else {
-								printf("            %s%c\n",
+								debug("            %s%c\n",
 									l_name,
 									dirc);
 							}
@@ -997,7 +997,7 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 			} else if (dentptr->name[0] == 0) {
 				debug("RootDentname == NULL - %d\n", i);
 				if (dols == LS_ROOT) {
-					printf("\n%d file(s), %d dir(s)\n\n",
+					debug("\n%d file(s), %d dir(s)\n\n",
 						files, dirs);
 					ret = 0;
 				}
@@ -1032,11 +1032,11 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 				}
 				if (doit) {
 					if (dirc == ' ') {
-						printf(" %8ld   %s%c\n",
+						debug(" %8ld   %s%c\n",
 							(long)FAT2CPU32(dentptr->size),
 							s_name, dirc);
 					} else {
-						printf("            %s%c\n",
+						debug("            %s%c\n",
 							s_name, dirc);
 					}
 				}
@@ -1100,7 +1100,7 @@ do_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 		/* If end of rootdir reached */
 		if (rootdir_end) {
 			if (dols == LS_ROOT) {
-				printf("\n%d file(s), %d dir(s)\n\n",
+				debug("\n%d file(s), %d dir(s)\n\n",
 				       files, dirs);
 				ret = 0;
 			}
@@ -1177,7 +1177,7 @@ int file_fat_detectfs(void)
 	char vol_label[12];
 
 	if (cur_dev == NULL) {
-		printf("No current device\n");
+		debug("No current device\n");
 		return 1;
 	}
 
@@ -1186,39 +1186,39 @@ int file_fat_detectfs(void)
     defined(CONFIG_CMD_SCSI) || \
     defined(CONFIG_CMD_USB) || \
     defined(CONFIG_MMC)
-	printf("Interface:  ");
+	debug("Interface:  ");
 	switch (cur_dev->if_type) {
 	case IF_TYPE_IDE:
-		printf("IDE");
+		debug("IDE");
 		break;
 	case IF_TYPE_SATA:
-		printf("SATA");
+		debug("SATA");
 		break;
 	case IF_TYPE_SCSI:
-		printf("SCSI");
+		debug("SCSI");
 		break;
 	case IF_TYPE_ATAPI:
-		printf("ATAPI");
+		debug("ATAPI");
 		break;
 	case IF_TYPE_USB:
-		printf("USB");
+		debug("USB");
 		break;
 	case IF_TYPE_DOC:
-		printf("DOC");
+		debug("DOC");
 		break;
 	case IF_TYPE_MMC:
-		printf("MMC");
+		debug("MMC");
 		break;
 	default:
-		printf("Unknown");
+		debug("Unknown");
 	}
 
-	printf("\n  Device %d: ", cur_dev->dev);
+	debug("\n  Device %d: ", cur_dev->dev);
 	dev_print(cur_dev);
 #endif
 
 	if (read_bootsectandvi(&bs, &volinfo, &fatsize)) {
-		printf("\nNo valid FAT fs found\n");
+		debug("\nNo valid FAT fs found\n");
 		return 1;
 	}
 
@@ -1226,7 +1226,7 @@ int file_fat_detectfs(void)
 	vol_label[11] = '\0';
 	volinfo.fs_type[5] = '\0';
 
-	printf("Filesystem: %s \"%s\"\n", volinfo.fs_type, vol_label);
+	debug("Filesystem: %s \"%s\"\n", volinfo.fs_type, vol_label);
 
 	return 0;
 }
@@ -1246,7 +1246,7 @@ int fat_exists(const char *filename)
 long file_fat_read_at(const char *filename, unsigned long pos, void *buffer,
 		      unsigned long maxsize)
 {
-	printf("reading %s\n", filename);
+	debug("reading %s\n", filename);
 	return do_fat_read_at(filename, pos, buffer, maxsize, LS_NO, 0);
 }
 
@@ -1261,7 +1261,7 @@ int fat_read_file(const char *filename, void *buf, int offset, int len)
 
 	len_read = file_fat_read_at(filename, offset, buf, len);
 	if (len_read == -1) {
-		printf("** Unable to read file %s **\n", filename);
+		debug("** Unable to read file %s **\n", filename);
 		return -1;
 	}
 
