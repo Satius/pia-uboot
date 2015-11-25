@@ -139,99 +139,24 @@
 #if !defined(CONFIG_SPL_BUILD)
 /*#if defined(CONFIG_PIA_NAND)*/
 #define CONFIG_EXTRA_ENV_SETTINGS \
-	"loadaddr=0x80200000\0" \
-	"kloadaddr=0x80007fc0\0" \
-	"fdtaddr=0x80F80000\0" \
-	"rdaddr=0x81000000\0" \
-	"boot_fdt=no\0" \
-	"bootpart=1\0" \
-	"bootdir=\0" \
-	"bootfile=zImage\0" \
-	"console=ttyO0,115200n8\0" \
-	"optargs=\0" \
-	"mmcdev=0\0" \
-	"mmcroot=/dev/mmcblk0p2 ro\0" \
-	"mmcrootfstype=ext4 rootwait\0" \
-	"rootpath=/export/rootfs\0" \
-	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
-	"ramrootfstype=ext2\0" \
-	"ip_method=none\0" \
-	"static_ip=${ipaddr}:${serverip}:${gatewayip}:${netmask}:${hostname}" \
-		"::off\0" \
-	"debug=early_printk debug\0" \
-	"bootargs_defaults=setenv bootargs " \
-		"console=${console} ${debug} ${optargs}\0" \
-	"mmcargs=run bootargs_defaults;" \
-		"setenv bootargs ${bootargs} " \
-		"root=${mmcroot} " \
-		"rootfstype=${mmcrootfstype}\0" \
-	"ramroot=/dev/ram0 rw ramdisk_size=65536 initrd=${rdaddr},64M\0" \
-	"ramrootfstype=ext2\0" \
-	"netargs=run bootargs_defaults;" \
-		"setenv bootargs ${bootargs} " \
-		"root=/dev/nfs " \
-		"nfsroot=${serverip}:${rootpath},${nfsopts} rw " \
-		"ip=dhcp\0" \
-	"bootenv=uEnv.txt\0" \
-	"bootenvusr=uEnvrc.txt\0" \
-	"loadbootenv=fatload mmc ${mmcdev} ${loadaddr} ${bootenv}\0" \
-	"loadbootenvusr=fatload mmc ${mmcdev} ${loadaddr} ${bootenvusr}\0" \
-	"importbootenv=; " \
-		"env import -t $loadaddr $filesize\0" \
-	"ramargs=setenv bootargs console=${console} " \
-		"${optargs} " \
-		"root=${ramroot} " \
-		"rootfstype=${ramrootfstype}\0" \
-	"loadramdisk=fatload mmc ${mmcdev} ${rdaddr} ramdisk.gz\0" \
-	"loaduimagefat=fatload mmc ${mmcdev} ${kloadaddr} ${bootfile}\0" \
-	"loaduimage=ext2load mmc ${mmcdev}:2 ${kloadaddr} /boot/${bootfile}\0" \
-	"loadimage=load mmc ${mmcdev}:${bootpart} ${loadaddr} ${bootdir}/${bootfile}\0" \
-	"mmcloados=run mmcargs; " \
-		"if test ${boot_fdt} = yes || test ${boot_fdt} = try; then " \
-			"if run loadfdt; then " \
-				"bootz ${loadaddr} - ${fdtaddr}; " \
-			"else " \
-				"if test ${boot_fdt} = try; then " \
-					"bootz; " \
-				"else " \
-					"echo WARN: Cannot load the DT; " \
-				"fi; " \
-			"fi; " \
-		"else " \
-			"bootz; " \
-		"fi;\0" \
-	"mmcboot=mmc dev ${mmcdev}; " \
-		"if mmc rescan; then " \
-                        "if test ${gpio_enter} = yes; then " \
-                            "if run loadbootenvusr; then " \
-                                "run importbootenv;" \
-                            "fi;" \
-                        "else " \
-			"if run loadbootenv; then " \
-				"run importbootenv;" \
-			"fi;" \
-                        "fi;" \
-			"if test -n $uenvcmd; then " \
-				"run uenvcmd;" \
-			"fi;" \
-			"if run loadimage; then " \
-				"run mmcloados;" \
-			"fi;" \
-		"fi;\0" \
-	"ramboot=echo Booting from ramdisk ...; " \
-		"run ramargs; " \
-		"bootz ${loadaddr}\0" \
-	NANDARGS \
-	DFUARGS
+  "bootaddr=0x82000000\0" \
+  "bootargs=console=ttyO0,115200n8 quiet loglevel=0\0" \
+  "tryboot=if load mmc ${mmcdev}:${mmcpart} ${bootaddr} ${image}; then bootz ${bootaddr}; fi\0" \
+  "selectmode=; " \
+    "if test ${gpio_enter} = yes; then " \
+      "setenv mmcpart 1; " \
+      "setenv image /zImage; " \
+    "else " \
+      "setenv mmcpart 2; " \
+      "setenv image /boot/zImage; " \
+    "fi;\0"
+
 #endif /* !SPL_BUILD */
 
 #define CONFIG_BOOTCOMMAND \
-	"run mmcboot;" \
-	"setenv mmcdev 1; " \
-	"setenv bootpart 2; " \
-	"setenv bootdir /boot;" \
-	"run mmcboot;" \
-	NANDBOOT
+  "run selectmode; " \
+  "setenv mmcdev 1; " \
+  "run tryboot; "
 
 /* set to negative value for no autoboot */
 #define CONFIG_BOOTDELAY		1
