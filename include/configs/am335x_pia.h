@@ -140,7 +140,7 @@
 /*#if defined(CONFIG_PIA_NAND)*/
 #define CONFIG_EXTRA_ENV_SETTINGS \
   "bootaddr=0x82000000\0" \
-  "bootargs=console=ttyO0,115200n8 quiet loglevel=0\0" \
+  "bootargs=console=ttyO0,115200n8 quiet loglevel=0 ipv6.disable=1\0" \
   "tryboot=if load mmc ${mmcdev}:${mmcpart} ${bootaddr} ${image}; then bootz ${bootaddr}; fi\0" \
   "selectmode=; " \
     "if test ${gpio_enter} = yes; then " \
